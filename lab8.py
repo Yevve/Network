@@ -1,3 +1,4 @@
+from socket import error
 import tkinter as tk
 import tkinter.messagebox as tkmsgbox
 import tkinter.scrolledtext as tksctxt
@@ -132,12 +133,17 @@ def disconnect():
     # we need to modify the following global variables
     global g_bConnected
     global g_sock
-
-
+    
+    if g_bConnected:
+        g_bConnected = False
+        g_sock.close()
+        g_sock = None
+    g_app.connectButton['text'] = 'connect'
+    g_app.connectButton['bg'] = 'green'
     # your code here
 
     # once disconnected, set buttons text to 'connect'
-    g_app.connectButton['text'] = 'connect'
+    
     
 
     
@@ -146,13 +152,16 @@ def tryToConnect():
     # we need to modify the following global variables
     global g_bConnected
     global g_sock
-    ipAddr=g_app.ipPort.get()
-    g_sock=socket.socket(family=socket.AF_INET,type=socket.SOCK_STREAM)
-
-    if g_sock.connect((ipAddr,60003)):
-        g_bConnected= True
+    try:
+        ipAddr=g_app.ipPort.get().split(":")
+        g_sock=socket.socket(family=socket.AF_INET,type=socket.SOCK_STREAM)
+        g_sock.connect((ipAddr[0],int(ipAddr[1])))
+        g_bConnected = True
         g_app.connectButton['text'] = 'disconnect'
         g_app.connectButton['bg'] = 'red'
+    except socket.error as error:
+        print(error)
+
     # your code here
     # try to connect to the IP address and port number
     # as indicated by the text field g_app.ipPort
@@ -164,18 +173,34 @@ def tryToConnect():
 
 # attempt to send the message (in the text field g_app.textIn) to the server
 def sendMessage(master):
+    message = g_app.textIn.get()
+    try:
+        g_sock.sendall(bytearray(message,'ascii'))
+    except socket.error as error:
+        print(error)
+        
 
     # your code here
     # a call to g_app.textIn.get() delivers the text field's content
     # if a socket.error occurrs, you may want to disconnect, in order
     # to put the program into a defined state
-    pass
+    
 
 
 # poll messages
 def pollMessages():
     # reschedule the next polling event
+    
     g_root.after(g_pollFreq, pollMessages)
+    if g_bConnected:
+        try:
+            g_sock.settimeout(0.0)
+            data=g_sock.recv(1024)       
+            printToMessages(data.decode('utf-8'))
+        except socket.error as error:
+            print(error)
+        
+    
     
     
     # your code here

@@ -35,7 +35,7 @@ def serversideGetPlaySocket():
     clientScore=0
     gameScore=3
     sockS=socket.socket(family=socket.AF_INET,type=socket.SOCK_STREAM)
-    sockS.bind(('192.168.0.42',60003))
+    sockS.bind(('192.168.0.41',60003))
     sockS.listen(1)
     while True:
         print('\nlistening...\n')
@@ -79,7 +79,7 @@ def serversideGetPlaySocket():
 
 def clientsideGetplaySocket(host):
     sock=socket.socket(family=socket.AF_INET,type=socket.SOCK_STREAM)
-    sock.connect(('192.168.0.42',60003))
+    sock.connect(('192.168.0.41',60003))
     
     while True:
         answer=input("Enter your choice(R)(P)(S):")
